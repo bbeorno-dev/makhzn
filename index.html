@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>نظام إدارة مخزون ومبيعات البركة الذكي</title>
+  
+  <!-- إعدادات الـ PWA والتثبيت الشاملة -->
+  <link rel="manifest" href='data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%D9%85%D8%AE%D8%B2%D9%88%D9%86%20%D8%A7%D9%84%D8%A8%D8%B1%D9%83%D8%A9%20%D9%84%D9%84%D9%85%D8%AC%D9%85%D8%AF%D8%A7%D8%AA%22%2C%22short_name%22%3A%22%D8%A7%D9%84%D8%A8%D8%B1%D9%83%D8%A9%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f4f6f9%22%2C%22theme_color%22%3A%22%230056b3%22%2C%22icons%22%3A%5B%5D%7D'>
+  <meta name="theme-color" content="#0056b3">
+
   <style>
     :root {
       --primary: #0056b3;
@@ -327,10 +332,18 @@
 
 </div>
 
-<!-- Firebase SDKs -->
+<!-- Firebase SDKs & PWA Service Worker Registration -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // تسجيل خدمة الـ Service Worker تلقائياً لتمكين التثبيت الفوري
+  if ('serviceWorker' in navigator) {
+    const swCode = `self.addEventListener('fetch', (e) => {});`;
+    const blob = new Blob([swCode], { type: 'text/javascript' });
+    const swUrl = URL.createObjectURL(blob);
+    navigator.serviceWorker.register(swUrl).catch(() => {});
+  }
 
   const firebaseConfig = {
     apiKey: "AIzaSyDd1u5PvoSgxc_RPh5eIerP_4WBOMsMtAk",
@@ -375,7 +388,6 @@
     document.getElementById('sellGram').value = gram;
   };
 
-  // إضافة دفعة جديدة
   document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     let selectedCat = document.getElementById('category').value;
@@ -421,7 +433,6 @@
     }
   });
 
-  // الاستماع للمخزون والدفعات
   onSnapshot(productsRef, (snapshot) => {
     const tbody = document.getElementById('inventoryBody');
     tbody.innerHTML = '';
@@ -445,7 +456,6 @@
       let rowClass = "";
       let statusBadge = "سليم";
 
-      // فحص المخزون المنخفض والتنبيهات
       if (diffDays <= 0) {
         rowClass = "row-danger";
         statusBadge = "<span class='badge-danger'>منتهي الصلاحية</span>";
@@ -481,7 +491,6 @@
     updateReports();
   });
 
-  // الاستماع للمبيعات
   onSnapshot(salesRef, (snapshot) => {
     allSales = [];
     let actProf = 0;
@@ -583,7 +592,7 @@
       });
       alert(`تم البيع بنجاح! المكسب المحقق: ${profitMade.toFixed(2)} ج.م`);
       document.getElementById('sellForm').reset();
-    } catch (err) {
+    }atch (err) {
       alert("خطأ أثناء البيع: " + err.message);
     }
   });
