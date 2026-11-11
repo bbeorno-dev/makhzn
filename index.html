@@ -190,7 +190,7 @@
       <form id="productForm" class="form-grid">
         <div class="form-group">
           <label>القسم الرئيسي</label>
-          <select id="category" onchange="checkNewCategoryOption()" required>
+          <select id="category" onchange="onCategoryChange()" required>
             <option value="لحوم وكبدة">لحوم وكبدة</option>
             <option value="أسماك ورنجة">أسماك ورنجة</option>
             <option value="توابل">توابل</option>
@@ -210,27 +210,18 @@
           <input type="text" id="name" required placeholder="مثال: بيض أحمر / رنحة سوبر">
         </div>
 
-        <div class="form-group">
-          <label>نوع التعبئة</label>
-          <select id="unitType" onchange="toggleUnitFields()">
-            <option value="weight">وزن (كيلو وجرام)</option>
-            <option value="box">كراتين / علب</option>
-            <option value="bag">أكياس</option>
-            <option value="piece">قطع / وحدات</option>
-          </select>
-        </div>
-
-        <div class="form-group qty-weight">
+        <!-- حقول الكمية المرنة حسب القسم -->
+        <div class="form-group qty-weight-box">
           <label>الوزن (كيلو)</label>
           <input type="number" id="weightKg" value="0" min="0">
         </div>
-        <div class="form-group qty-weight">
+        <div class="form-group qty-weight-box">
           <label>الوزن (جرام)</label>
           <input type="number" id="weightGram" value="0" min="0" max="999" step="50">
         </div>
 
-        <div class="form-group qty-other" style="display:none;">
-          <label id="lblQtyNum">الكمية / العدد</label>
+        <div class="form-group qty-unit-box" style="display:none;">
+          <label id="lblQtyNum">الكمية (عدد الوحدات / الأكياس / الأطباق)</label>
           <input type="number" id="qtyNumber" value="0" min="0">
         </div>
 
@@ -369,18 +360,25 @@
     event.currentTarget.classList.add('active');
   };
 
-  window.checkNewCategoryOption = function() {
+  // التحكم التلقائي بخانات الإدخال حسب القسم المختاره
+  window.onCategoryChange = function() {
     const val = document.getElementById('category').value;
     document.getElementById('newCategoryGroup').style.display = val === '__NEW__' ? 'flex' : 'none';
-  };
 
-  window.toggleUnitFields = function() {
-    const type = document.getElementById('unitType').value;
-    const isWeight = type === 'weight';
-    document.querySelectorAll('.qty-weight').forEach(el => el.style.display = isWeight ? 'flex' : 'none');
-    document.querySelectorAll('.qty-other').forEach(el => el.style.display = isWeight ? 'none' : 'flex');
-    const labels = { box: 'عدد الكراتين/العلب', bag: 'عدد الأكياس', piece: 'العدد' };
-    if(!isWeight) document.getElementById('lblQtyNum').textContent = labels[type] || 'الكمية';
+    // الأقسام التي تعتمد على العدد أو العلب وليست وزناً
+    const countBasedCategories = ["توابل", "بيض", "مصنعات وبطاطس"];
+    const isCountBased = countBasedCategories.includes(val);
+
+    document.querySelectorAll('.qty-weight-box').forEach(el => el.style.display = isCountBased ? 'none' : 'flex');
+    document.querySelectorAll('.qty-unit-box').forEach(el => el.style.display = isCountBased ? 'flex' : 'none');
+    
+    if(val === "بيض") {
+      document.getElementById('lblQtyNum').textContent = "عدد الأطباق / كراتين البيض";
+    } else if(val === "توابل") {
+      document.getElementById('lblQtyNum').textContent = "عدد العبوات / الأكياس";
+    } else {
+      document.getElementById('lblQtyNum').textContent = "الكمية (العدد)";
+    }
   };
 
   window.setQuickGram = function(gram) {
@@ -395,15 +393,20 @@
       if (!selectedCat) return alert("يرجى كتابة اسم القسم الجديد!");
     }
 
-    const type = document.getElementById('unitType').value;
+    const countBasedCategories = ["توابل", "بيض", "مصنعات وبطاطس"];
+    const isCountBased = countBasedCategories.includes(selectedCat);
+    
     let totalQty = 0;
+    let unitTypeStr = 'weight';
 
-    if (type === 'weight') {
+    if (isCountBased) {
+      totalQty = parseFloat(document.getElementById('qtyNumber').value) || 0;
+      unitTypeStr = 'piece';
+    } else {
       const kg = parseFloat(document.getElementById('weightKg').value) || 0;
       const g = parseFloat(document.getElementById('weightGram').value) || 0;
       totalQty = kg + (g / 1000);
-    } else {
-      totalQty = parseFloat(document.getElementById('qtyNumber').value) || 0;
+      unitTypeStr = 'weight';
     }
 
     const prodDateStr = document.getElementById('prodDate').value;
@@ -416,7 +419,7 @@
       await addDoc(productsRef, {
         category: selectedCat,
         name: document.getElementById('name').value,
-        unitType: type,
+        unitType: unitTypeStr,
         quantity: totalQty,
         prodDate: prodDateStr,
         expDate: expDateStr,
@@ -426,6 +429,7 @@
       });
       document.getElementById('productForm').reset();
       document.getElementById('newCategoryGroup').style.display = 'none';
+      onCategoryChange(); // إعادة ضبط خانات النموذج
       alert("تمت إضافة الدفعة بنجاح!");
     } catch (err) {
       alert("خطأ في الحفظ: " + err.message);
@@ -544,8 +548,7 @@
       const grams = Math.round((item.quantity - kg) * 1000);
       return `${kg} ك و ${grams} جرام`;
     }
-    const units = { box: 'كرتونة/علبة', bag: 'كيس', piece: 'قطعة' };
-    return `${item.quantity} ${units[item.unitType] || ''}`;
+    return `${item.quantity} وحدة/طبق`;
   }
 
   window.setupSellQuantityFields = function() {
