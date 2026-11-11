@@ -1,0 +1,13 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "مخزن البركة للمجمدات",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "bbeorno-dev.github",
+  "start_url": "/",
+  "theme_color": "#ffffff",
+  "id": "makhzn",
+  "description": "نظام إدارة مخزون ومبيعات البركة"
+}
