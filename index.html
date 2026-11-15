@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>نظام إدارة مخزون ومبيعات البركة الذكي</title>
+  <title>مخزن البركة - الإصدار المصلح</title>
   <meta name="theme-color" content="#0056b3">
-
   <style>
     :root {
       --primary: #0056b3;
@@ -15,7 +14,6 @@
       --danger: #dc3545;
       --warning: #ffc107;
     }
-
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg);
@@ -23,9 +21,7 @@
       padding: 15px;
       color: #333;
     }
-
     .container { max-width: 1200px; margin: 0 auto; }
-
     header {
       text-align: center;
       padding: 15px 0;
@@ -33,10 +29,8 @@
       color: white;
       border-radius: 10px;
       margin-bottom: 20px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    header h1 { margin: 0; font-size: 1.6rem; }
-
+    header h1 { margin: 0; font-size: 1.5rem; }
     .nav-tabs {
       display: flex;
       justify-content: center;
@@ -52,16 +46,10 @@
       font-weight: bold;
       cursor: pointer;
       font-size: 0.95rem;
-      transition: 0.2s;
     }
-    .tab-btn.active {
-      background: var(--primary);
-      color: white;
-    }
-
+    .tab-btn.active { background: var(--primary); color: white; }
     .section-content { display: none; }
     .section-content.active { display: block; }
-
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -80,7 +68,6 @@
     .stat-card.orange { border-right-color: var(--warning); }
     .stat-card h4 { margin: 0 0 5px 0; color: #666; font-size: 0.9rem; }
     .stat-card p { margin: 0; font-size: 1.4rem; font-weight: bold; }
-
     .card {
       background: var(--card-bg);
       padding: 20px;
@@ -88,7 +75,6 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
       margin-bottom: 20px;
     }
-
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -103,10 +89,8 @@
       font-size: 1rem;
       background-color: #fff;
       outline: none;
-      transition: border-color 0.2s;
     }
     input:focus, select:focus { border-color: var(--primary); }
-
     .autocomplete-items {
       position: absolute;
       border: 1px solid #d4d4d4;
@@ -118,16 +102,13 @@
       max-height: 150px;
       overflow-y: auto;
       border-radius: 0 0 6px 6px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
     .autocomplete-items div {
       padding: 10px;
       cursor: pointer;
       border-bottom: 1px solid #eee;
-      font-size: 0.9rem;
     }
     .autocomplete-items div:hover { background-color: #e9ecef; }
-
     button.btn-main {
       grid-column: 1 / -1;
       padding: 14px;
@@ -141,33 +122,29 @@
       margin-top: 10px;
     }
     button.btn-sell { background: var(--success); }
-    button:hover { opacity: 0.9; }
-
     .table-responsive { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
     th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-size: 0.95rem; }
     th { background: #e9ecef; color: #333; }
-
     .row-danger { background-color: #f8d7da !important; color: #721c24; font-weight: bold; }
-    .row-warning { background-color: #fff3cd !important; color: #856404; }
     .badge-danger { background: var(--danger); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; }
     .badge-warning { background: var(--warning); color: #333; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; }
-    .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <h1>❄️ نظام "البركة للمجمدات" - إدارة المخزون والمبيعات</h1>
+    <h1>❄️ نظام "البركة للمجمدات" - النسخة المصلحة</h1>
   </header>
 
-  <!-- أزرار التنقل الرئيسية وأزرار الأقسام الديناميكية -->
   <div class="nav-tabs" id="navTabsContainer">
-    <button class="tab-btn active" onclick="switchTab('add-product', event)">➕ إضافة منتج</button>
-    <button class="tab-btn" onclick="switchTab('pos', event)">🛒 الكاشير السريع</button>
-    <button class="tab-btn" onclick="switchTab('expiring', event)">⚠️ تنبيهات الصلاحية</button>
-    <button class="tab-btn" onclick="switchTab('reports', event)">📊 الأرباح والتقارير</button>
+    <button class="tab-btn active" onclick="switchTab('add-product', this)">➕ إضافة منتج</button>
+    <button class="tab-btn" onclick="switchTab('all-inventory', this)">📦 كل المنتجات والأقسام</button>
+    <button class="tab-btn" onclick="switchTab('pos', this)">🛒 الكاشير السريع</button>
+    <button class="tab-btn" onclick="switchTab('expiring', this)">⚠️ تنبيهات الصلاحية</button>
+    <button class="tab-btn" onclick="switchTab('reports', this)">📊 الأرباح والتقارير</button>
   </div>
 
   <!-- 1. إضافة منتج -->
@@ -192,9 +169,9 @@
           <input type="text" id="customCategoryName" placeholder="اكتب اسم القسم الجديد هنا">
         </div>
 
-        <div class="form-group" style="position:relative;">
+        <div class="form-group">
           <label>اسم المنتج</label>
-          <input type="text" id="name" required placeholder="مثال: كبدة إسكندراني / رنحة سوبر" autocomplete="off" oninput="showSuggestions(this.value)">
+          <input type="text" id="name" required placeholder="اكتب اسم المنتج..." autocomplete="off" oninput="showSuggestions(this.value)">
           <div id="autocompleteList" class="autocomplete-items"></div>
         </div>
 
@@ -212,11 +189,11 @@
           <input type="number" id="shelfMonths" required placeholder="مثال: 6">
         </div>
         <div class="form-group">
-          <label>سعر الشراء (للوحدة أو الكيلو)</label>
+          <label>سعر الشراء</label>
           <input type="number" step="0.5" id="buyPrice" required placeholder="140">
         </div>
         <div class="form-group">
-          <label>سعر البيع المقترح</label>
+          <label>سعر البيع</label>
           <input type="number" step="0.5" id="sellPrice" required placeholder="160">
         </div>
         <button type="submit" class="btn-main">حفظ الدفعة في المخزن</button>
@@ -224,34 +201,72 @@
     </div>
   </div>
 
-  <!-- 2. الكاشير -->
+  <!-- 2. صفحة عرض كل المنتجات وفلترتها بالقسم -->
+  <div id="all-inventory" class="section-content">
+    <div class="card">
+      <h3>📦 عرض المنتجات وتفاصيلها حسب القسم</h3>
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>اختر القسم لعرض منتجاته:</label>
+        <select id="filterByCategorySelect" onchange="renderFilteredInventory()">
+          <option value="ALL">عرض كل الأقسام</option>
+        </select>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>القسم</th>
+              <th>المنتج</th>
+              <th>المتبقي</th>
+              <th>سعر الشراء</th>
+              <th>سعر البيع</th>
+              <th>الإنتاج</th>
+              <th>الصلاحية</th>
+              <th>الحالة</th>
+              <th>حذف</th>
+            </tr>
+          </thead>
+          <tbody id="allInventoryBody">
+            <tr><td colspan="9">جاري تحميل المنتجات...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. الكاشير -->
   <div id="pos" class="section-content">
     <div class="card" style="border-top: 4px solid var(--success);">
-      <h3>🛒 الكاشير السريع - خصم المخزون وتسجيل المبيعات</h3>
+      <h3>🛒 الكاشير السريع</h3>
       <div class="form-group" style="margin-bottom: 15px;">
-        <label>بحث بالاسم أو القسم:</label>
-        <input type="text" id="searchPos" placeholder="اكتب للفلترة السريعة..." oninput="filterPosDropdown()">
+        <label>بحث سريع بالاسم أو القسم:</label>
+        <input type="text" id="searchPos" placeholder="اكتب للبحث..." oninput="filterPosDropdown()">
       </div>
       <form id="sellForm" class="form-grid">
         <div class="form-group" style="grid-column: 1 / -1;">
           <label>اختر الدفعة المحددة للبيع منها</label>
-          <select id="sellSelectBatch" required></select>
+          <select id="sellSelectBatch" required onchange="calculatePosTotal()"></select>
         </div>
 
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label>الكمية المباعة المطلوبة</label>
-          <input type="number" step="0.001" id="sellQuantity" required value="0" min="0">
+        <div class="form-group">
+          <label>الكمية المباعة</label>
+          <input type="number" step="0.001" id="sellQuantity" required value="0" min="0" oninput="calculatePosTotal()">
         </div>
 
-        <button type="submit" class="btn-main btn-sell">إتمام البيع وخصم المخزون فوراً</button>
+        <div class="form-group">
+          <label>إجمالي المطلوب من الزبون (ج.م)</label>
+          <input type="text" id="posTotalDisplay" readonly value="0 ج.م" style="background:#e9ecef; font-weight:bold; color:green;">
+        </div>
+
+        <button type="submit" class="btn-main btn-sell">إتمام البيع وخصم المخزون</button>
       </form>
     </div>
   </div>
 
-  <!-- 3. التنبيهات -->
+  <!-- 4. التنبيهات -->
   <div id="expiring" class="section-content">
     <div class="card" style="border-top: 4px solid var(--warning);">
-      <h3>⚠️ المنتجات التي اقتربت على انتهاء الصلاحية</h3>
+      <h3>⚠️ المنتجات القريبة من انتهاء الصلاحية (14 يوم أو أقل)</h3>
       <div class="table-responsive">
         <table>
           <thead>
@@ -264,18 +279,22 @@
             </tr>
           </thead>
           <tbody id="expiringBody">
-            <tr><td colspan="5">جاري التحميل...</td></tr>
+            <tr><td colspan="5">جاري الفحص...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- 4. التقارير -->
+  <!-- 5. التقارير -->
   <div id="reports" class="section-content">
-    <div class="stats-grid" style="margin-bottom: 20px;">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h4>إجمالي رأس المال الحالي</h4>
+        <p id="totalCapital">0 ج.م</p>
+      </div>
       <div class="stat-card green">
-        <h4>أرباح شهر نوفمبر (شهر 11)</h4>
+        <h4>أرباح شهر نوفمبر (11)</h4>
         <p id="novProfit">0 ج.م</p>
       </div>
       <div class="stat-card orange">
@@ -291,8 +310,8 @@
           <thead>
             <tr>
               <th>القسم</th>
-              <th>رأس المال الحالي للدفعات</th>
-              <th>الأرباح المحققة من المبيعات</th>
+              <th>رأس المال الحالي</th>
+              <th>الأرباح المحققة</th>
             </tr>
           </thead>
           <tbody id="categoryReportsBody"></tbody>
@@ -301,12 +320,10 @@
     </div>
   </div>
 
-  <!-- 5. حاوية صفحات الأقسام المستقلة الديناميكية -->
+  <!-- حاوية صفحات الأقسام المنفصلة -->
   <div id="dynamic-category-pages"></div>
-
 </div>
 
-<!-- Firebase SDKs & Logic -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -329,13 +346,13 @@
   let localBatches = [];
   let allSales = [];
 
-  window.switchTab = function(tabId, event) {
+  window.switchTab = function(tabId, btnElement) {
     document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     
     const target = document.getElementById(tabId);
-    if(target) target.classList.add('active');
-    if(event && event.currentTarget) event.currentTarget.classList.add('active');
+    if (target) target.classList.add('active');
+    if (btnElement) btnElement.classList.add('active');
   };
 
   window.checkNewCategoryOption = function() {
@@ -367,12 +384,13 @@
     let selectedCat = document.getElementById('category').value;
     if (selectedCat === '__NEW__') {
       selectedCat = document.getElementById('customCategoryName').value.trim();
-      if (!selectedCat) return alert("يرجى كتابة اسم القسم الجديد!");
+      if (!selectedCat) return alert("اكتب اسم القسم الجديد!");
     }
 
     const totalQty = parseFloat(document.getElementById('totalQtyInput').value) || 0;
     const prodDateStr = document.getElementById('prodDate').value;
-    const shelfMonths = parseInt(document.getElementById('shelfMonths').value);
+    const shelfMonths = parseInt(document.getElementById('shelfMonths').value) || 0;
+    
     const pDate = new Date(prodDateStr);
     pDate.setMonth(pDate.getMonth() + shelfMonths);
     const expDateStr = pDate.toISOString().split('T')[0];
@@ -380,17 +398,17 @@
     try {
       await addDoc(productsRef, {
         category: selectedCat,
-        name: document.getElementById('name').value,
+        name: document.getElementById('name').value.trim(),
         quantity: totalQty,
         prodDate: prodDateStr,
         expDate: expDateStr,
-        buyPrice: parseFloat(document.getElementById('buyPrice').value),
-        sellPrice: parseFloat(document.getElementById('sellPrice').value),
+        buyPrice: parseFloat(document.getElementById('buyPrice').value) || 0,
+        sellPrice: parseFloat(document.getElementById('sellPrice').value) || 0,
         createdAt: new Date()
       });
       document.getElementById('productForm').reset();
       document.getElementById('newCategoryGroup').style.display = 'none';
-      alert("تمت إضافة الدفعة بنجاح!");
+      alert("تم حفظ الدفعة بنجاح!");
     } catch (err) {
       alert("خطأ في الحفظ: " + err.message);
     }
@@ -404,7 +422,8 @@
       localBatches.push(item);
     });
 
-    updateCategoriesDropdown();
+    updateCategorySelects();
+    renderFilteredInventory();
     filterPosDropdown();
     renderExpiringProducts();
     renderDynamicCategoryPages();
@@ -413,9 +432,9 @@
 
   onSnapshot(salesRef, (snapshot) => {
     allSales = [];
-    snapshot.forEach(doc => {
-      const sale = doc.data();
-      if(sale.soldAt && typeof sale.soldAt.toDate === 'function') {
+    snapshot.forEach(docSnap => {
+      const sale = docSnap.data();
+      if (sale.soldAt && typeof sale.soldAt.toDate === 'function') {
         sale.soldAtDate = sale.soldAt.toDate();
       } else {
         sale.soldAtDate = new Date();
@@ -425,23 +444,71 @@
     updateReports();
   });
 
-  function updateCategoriesDropdown() {
-    const select = document.getElementById('category');
-    const existingCats = ["لحوم وكبدة", "أسماك ورنجة", "توابل", "بيض", "مصنعات وبطاطس"];
-    const dynamicCats = [...new Set(localBatches.map(p => p.category))];
+  function updateCategorySelects() {
+    const addSelect = document.getElementById('category');
+    const filterSelect = document.getElementById('filterByCategorySelect');
+    const currentFilterVal = filterSelect.value;
 
+    const existingCats = ["لحوم وكبدة", "أسماك ورنجة", "توابل", "بيض", "مصنعات وبطاطس"];
+    const dynamicCats = [...new Set(localBatches.map(p => p.category).filter(Boolean))];
+    const allCats = [...new Set([...existingCats, ...dynamicCats])];
+
+    // تحديث قائمة الإضافة
     dynamicCats.forEach(cat => {
-      if (!existingCats.includes(cat) && cat) {
-        let exists = Array.from(select.options).some(opt => opt.value === cat);
+      if (!existingCats.includes(cat)) {
+        let exists = Array.from(addSelect.options).some(opt => opt.value === cat);
         if (!exists) {
           const opt = document.createElement('option');
           opt.value = cat;
           opt.textContent = cat;
-          select.insertBefore(opt, select.options[select.options.length - 1]);
+          addSelect.insertBefore(opt, addSelect.options[addSelect.options.length - 1]);
         }
       }
     });
+
+    // تحديث قائمة الفلترة في صفحة كل المنتجات
+    filterSelect.innerHTML = '<option value="ALL">عرض كل الأقسام</option>';
+    allCats.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      filterSelect.appendChild(opt);
+    });
+    if (Array.from(filterSelect.options).some(o => o.value === currentFilterVal)) {
+      filterSelect.value = currentFilterVal;
+    }
   }
+
+  window.renderFilteredInventory = function() {
+    const selectedCat = document.getElementById('filterByCategorySelect').value;
+    const tbody = document.getElementById('allInventoryBody');
+    tbody.innerHTML = '';
+
+    const filtered = selectedCat === 'ALL' 
+      ? localBatches 
+      : localBatches.filter(p => p.category === selectedCat);
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9">لا توجد منتجات في هذا القسم حالياً.</td></tr>';
+      return;
+    }
+
+    filtered.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.category}</td>
+        <td><strong>${item.name}</strong></td>
+        <td>${item.quantity}</td>
+        <td>${item.buyPrice} ج.م</td>
+        <td>${item.sellPrice} ج.م</td>
+        <td>${item.prodDate || '-'}</td>
+        <td>${item.expDate || '-'}</td>
+        <td>${item.quantity <= 2 ? "<span class='badge-warning'>مخزون منخفض</span>" : "سليم"}</td>
+        <td><button class="btn-delete" onclick="deleteBatch('${item.id}')">حذف</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  };
 
   window.filterPosDropdown = function() {
     const searchVal = (document.getElementById('searchPos')?.value || '').toLowerCase();
@@ -450,31 +517,40 @@
 
     localBatches.forEach(item => {
       if (item.quantity > 0) {
-        const textStr = `[${item.category}] ${item.name} ${item.buyPrice}ج ${item.expDate}`.toLowerCase();
+        const textStr = `${item.category} ${item.name} ${item.buyPrice} ${item.expDate}`.toLowerCase();
         if (textStr.includes(searchVal)) {
           const opt = document.createElement('option');
           opt.value = item.id;
-          opt.textContent = `${item.category} ➔ ${item.name} | متبقي: ${item.quantity} | شراء: ${item.buyPrice}ج | ينتهي: ${item.expDate}`;
+          opt.textContent = `${item.category} ➔ ${item.name} | متبقي: ${item.quantity} | بيع: ${item.sellPrice}ج | ينتهي: ${item.expDate}`;
           select.appendChild(opt);
         }
       }
     });
+    calculatePosTotal();
+  };
+
+  window.calculatePosTotal = function() {
+    const id = document.getElementById('sellSelectBatch').value;
+    const qty = parseFloat(document.getElementById('sellQuantity').value) || 0;
+    const item = localBatches.find(p => p.id === id);
+    const total = item ? (qty * item.sellPrice) : 0;
+    document.getElementById('posTotalDisplay').value = total.toFixed(2) + " ج.م";
   };
 
   document.getElementById('sellForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('sellSelectBatch').value;
     const item = localBatches.find(p => p.id === id);
-    if (!item) return alert("اختر دفعة صحيحة");
+    if (!item) return alert("اختر دفعة صحيحة من القائمة!");
 
     const sellQty = parseFloat(document.getElementById('sellQuantity').value) || 0;
-    
-    if (sellQty <= 0 || sellQty > (item.quantity + 0.0001)) {
-      return alert("الكمية المباعة غير صالحة أو أكبر من المتبقي في هذه الدفعة!");
+    if (sellQty <= 0) return alert("اكتب كمية أكبر من صفر!");
+    if (sellQty > (item.quantity + 0.001)) {
+      return alert(`الكمية المطلوبة (${sellQty}) أكبر من المتاح في المخزن (${item.quantity})!`);
     }
 
     const finalSellQty = Math.min(sellQty, item.quantity);
-    const newQty = Math.max(0, item.quantity - finalSellQty);
+    const newQty = Number((item.quantity - finalSellQty).toFixed(3));
     const profitMade = finalSellQty * (item.sellPrice - item.buyPrice);
 
     try {
@@ -486,8 +562,9 @@
         profit: profitMade,
         soldAt: new Date()
       });
-      alert(`تم البيع بنجاح! المكسب المحقق: ${profitMade.toFixed(2)} ج.م`);
+      alert(`تم البيع بنجاح! المكسب: ${profitMade.toFixed(2)} ج.م`);
       document.getElementById('sellForm').reset();
+      document.getElementById('posTotalDisplay').value = "0 ج.م";
       filterPosDropdown();
     } catch (err) {
       alert("خطأ أثناء البيع: " + err.message);
@@ -495,7 +572,7 @@
   });
 
   window.deleteBatch = async function(id) {
-    if (confirm("هل تريد حذف هذه الدفعة نهائياً؟")) {
+    if (confirm("هل أنت متأكد من حذف هذه الدفعة؟")) {
       await deleteDoc(doc(db, "products", id));
     }
   };
@@ -504,22 +581,27 @@
     const tbody = document.getElementById('expiringBody');
     tbody.innerHTML = '';
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const criticalItems = localBatches.filter(item => {
+      if (!item.expDate || item.quantity <= 0) return false;
       const expDate = new Date(item.expDate);
+      if (isNaN(expDate.getTime())) return false;
       const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
       return diffDays <= 14;
     });
 
     if (criticalItems.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5">لا توجد منتجات قريبة من انتهاء الصلاحية حالياً. ممتاز!</td></tr>`;
+      tbody.innerHTML = '<tr><td colspan="5">لا توجد منتجات قريبة من انتهاء الصلاحية حالياً.</td></tr>';
       return;
     }
 
     criticalItems.forEach(item => {
       const expDate = new Date(item.expDate);
       const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-      let badge = diffDays <= 0 ? "<span class='badge-danger'>منتهي الصلاحية!</span>" : `<span class='badge-danger'>ينتهي خلال ${diffDays} يوم</span>`;
+      let badge = diffDays <= 0 
+        ? "<span class='badge-danger'>منتهي الصلاحية!</span>" 
+        : `<span class='badge-danger'>ينتهي خلال ${diffDays} يوم</span>`;
 
       const tr = document.createElement('tr');
       tr.className = "row-danger";
@@ -535,51 +617,43 @@
   }
 
   function renderDynamicCategoryPages() {
-    const cats = [...new Set(localBatches.map(p => p.category))];
+    const cats = [...new Set(localBatches.map(p => p.category).filter(Boolean))];
     const navContainer = document.getElementById('navTabsContainer');
     const pagesContainer = document.getElementById('dynamic-category-pages');
 
     document.querySelectorAll('.dynamic-cat-btn').forEach(el => el.remove());
     pagesContainer.innerHTML = '';
 
-    cats.forEach(cat => {
-      // 1. زر القسم في شريط التنقل العلوي
+    cats.forEach((cat, index) => {
+      const pageId = 'cat-page-' + index;
+
       const btn = document.createElement('button');
       btn.className = "tab-btn dynamic-cat-btn";
       btn.textContent = `📁 ${cat}`;
-      btn.onclick = function(e) { switchTab('cat-page-' + sanitizeClass(cat), e); };
+      btn.onclick = function() { switchTab(pageId, this); };
       navContainer.appendChild(btn);
 
-      // 2. صفحة القسم المستقلة التي تعرض كل منتجاته وتفاصيله
       const catDiv = document.createElement('div');
-      catDiv.id = 'cat-page-' + sanitizeClass(cat);
+      catDiv.id = pageId;
       catDiv.className = "section-content";
 
       const catItems = localBatches.filter(p => p.category === cat);
-      let rowsHTML = '';
-
-      if (catItems.length === 0) {
-        rowsHTML = `<tr><td colspan="8">لا توجد دفعات مسجلة في هذا القسم حالياً.</td></tr>`;
-      } else {
-        catItems.forEach(item => {
-          rowsHTML += `
-            <tr>
-              <td><strong>${item.name}</strong></td>
-              <td>${item.quantity}</td>
-              <td>${item.buyPrice} ج.م</td>
-              <td>${item.sellPrice} ج.م</td>
-              <td>${item.prodDate}</td>
-              <td>${item.expDate}</td>
-              <td>${item.quantity <= 2 ? "<span class='badge-warning'>مخزون منخفض</span>" : "سليم"}</td>
-              <td><button class="btn-delete" onclick="deleteBatch('${item.id}')">حذف</button></td>
-            </tr>
-          `;
-        });
-      }
+      let rowsHTML = catItems.map(item => `
+        <tr>
+          <td><strong>${item.name}</strong></td>
+          <td>${item.quantity}</td>
+          <td>${item.buyPrice} ج.م</td>
+          <td>${item.sellPrice} ج.م</td>
+          <td>${item.prodDate || '-'}</td>
+          <td>${item.expDate || '-'}</td>
+          <td>${item.quantity <= 2 ? "<span class='badge-warning'>مخزون منخفض</span>" : "سليم"}</td>
+          <td><button class="btn-delete" onclick="deleteBatch('${item.id}')">حذف</button></td>
+        </tr>
+      `).join('');
 
       catDiv.innerHTML = `
         <div class="card">
-          <h3>📦 منتجات ودفعات قسم: ${cat}</h3>
+          <h3>📦 منتجات قسم: ${cat}</h3>
           <div class="table-responsive">
             <table>
               <thead>
@@ -591,7 +665,7 @@
                   <th>الإنتاج</th>
                   <th>الصلاحية</th>
                   <th>الحالة</th>
-                  <th>إجراء</th>
+                  <th>حذف</th>
                 </tr>
               </thead>
               <tbody>${rowsHTML}</tbody>
@@ -603,11 +677,13 @@
     });
   }
 
-  function sanitizeClass(str) {
-    return str.replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-  }
-
   function updateReports() {
+    let totalCap = 0;
+    localBatches.forEach(item => {
+      totalCap += (item.quantity * item.buyPrice);
+    });
+    document.getElementById('totalCapital').textContent = totalCap.toFixed(2) + " ج.م";
+
     let novTotalProfit = 0;
     const novDaysSet = new Set();
 
@@ -615,8 +691,7 @@
       const d = sale.soldAtDate;
       if (d.getMonth() === 10 && d.getFullYear() === 2026) {
         novTotalProfit += (sale.profit || 0);
-        const dayStr = d.toISOString().split('T')[0];
-        novDaysSet.add(dayStr);
+        novDaysSet.add(d.toISOString().split('T')[0]);
       }
     });
 
@@ -626,18 +701,18 @@
     document.getElementById('novProfit').textContent = novTotalProfit.toFixed(2) + " ج.م";
     document.getElementById('avgDailyProfit').textContent = avgDaily.toFixed(2) + " ج.م / يوم";
 
-    const categories = [...new Set(localBatches.map(p => p.category))];
+    const categories = [...new Set(localBatches.map(p => p.category).filter(Boolean))];
     const tbody = document.getElementById('categoryReportsBody');
     tbody.innerHTML = '';
 
     if (categories.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="3">لا توجد بيانات حالياً</td></tr>`;
+      tbody.innerHTML = '<tr><td colspan="3">لا توجد بيانات حالياً</td></tr>';
       return;
     }
 
     categories.forEach(cat => {
       let catCapital = localBatches.filter(p => p.category === cat).reduce((sum, p) => sum + (p.quantity * p.buyPrice), 0);
-      let catProfit = allSales.filter(s => s.category === cat).reduce((sum, s) => sum + s.profit, 0);
+      let catProfit = allSales.filter(s => s.category === cat).reduce((sum, s) => sum + (s.profit || 0), 0);
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -645,7 +720,7 @@
         <td>${catCapital.toFixed(2)} ج.م</td>
         <td style="color: green; font-weight: bold;">${catProfit.toFixed(2)} ج.م</td>
       `;
-      tbody.innerHTML += tr.outerHTML;
+      tbody.appendChild(tr);
     });
   }
 </script>
