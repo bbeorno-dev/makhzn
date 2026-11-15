@@ -164,7 +164,7 @@
     <h1>❄️ نظام "البركة للمجمدات" - إدارة المخزون والمبيعات</h1>
   </header>
 
-  <!-- أزرار التنقل الرئيسية -->
+  <!-- أزرار التنقل الرئيسية وأزرار الأقسام الديناميكية -->
   <div class="nav-tabs" id="navTabsContainer">
     <button class="tab-btn active" onclick="switchTab('add-product', event)">➕ إضافة منتج</button>
     <button class="tab-btn" onclick="switchTab('pos', event)">🛒 الكاشير السريع</button>
@@ -273,9 +273,8 @@
     </div>
   </div>
 
-  <!-- 4. التقارير والأرباح الشهرية واليومية -->
+  <!-- 4. التقارير -->
   <div id="reports" class="section-content">
-    <!-- بطاقات الإحصائيات المتقدمة -->
     <div class="stats-grid" style="margin-bottom: 20px;">
       <div class="stat-card green">
         <h4>أرباح شهر نوفمبر (شهر 11)</h4>
@@ -304,7 +303,7 @@
     </div>
   </div>
 
-  <!-- 5. حاوية صفحات الأقسام المستقلة -->
+  <!-- 5. حاوية صفحات الأقسام المستقلة الديناميكية -->
   <div id="dynamic-category-pages"></div>
 
 </div>
@@ -413,9 +412,6 @@
       expProf += (item.quantity * (item.sellPrice - item.buyPrice));
     });
 
-    document.getElementById('totalCapital').textContent = totalCap.toFixed(2) + " ج.م";
-    document.getElementById('expectedProfit').textContent = expProf.toFixed(2) + " ج.م";
-    
     updateCategoriesDropdown();
     filterPosDropdown();
     renderExpiringProducts();
@@ -428,7 +424,6 @@
     let actProf = 0;
     snapshot.forEach(doc => {
       const sale = doc.data();
-      // تحويل تاريخ البيع إلى كائن تاريخ بشكل آمن
       if(sale.soldAt && typeof sale.soldAt.toDate === 'function') {
         sale.soldAtDate = sale.soldAt.toDate();
       } else {
@@ -437,7 +432,6 @@
       allSales.push(sale);
       actProf += (sale.profit || 0);
     });
-    document.getElementById('actualProfit').textContent = actProf.toFixed(2) + " ج.م";
     updateReports();
   });
 
@@ -484,19 +478,22 @@
     if (!item) return alert("اختر دفعة صحيحة");
 
     const sellQty = parseFloat(document.getElementById('sellQuantity').value) || 0;
-    if (sellQty <= 0 || sellQty > item.quantity) {
+    
+    // تم ضبط الهامش العشري هنا ليقبل بيع الكمية بالكامل بدون أخطاء تقريب
+    if (sellQty <= 0 || sellQty > (item.quantity + 0.0001)) {
       return alert("الكمية المباعة غير صالحة أو أكبر من المتبقي في هذه الدفعة!");
     }
 
-    const newQty = item.quantity - sellQty;
-    const profitMade = sellQty * (item.sellPrice - item.buyPrice);
+    const finalSellQty = Math.min(sellQty, item.quantity);
+    const newQty = Math.max(0, item.quantity - finalSellQty);
+    const profitMade = finalSellQty * (item.sellPrice - item.buyPrice);
 
     try {
       await updateDoc(doc(db, "products", id), { quantity: newQty });
       await addDoc(salesRef, {
         category: item.category,
         productName: item.name,
-        soldQty: sellQty,
+        soldQty: finalSellQty,
         profit: profitMade,
         soldAt: new Date()
       });
@@ -557,12 +554,14 @@
     pagesContainer.innerHTML = '';
 
     cats.forEach(cat => {
+      // 1. زر القسم في الأعلى
       const btn = document.createElement('button');
       btn.className = "tab-btn dynamic-cat-btn";
       btn.textContent = `📁 ${cat}`;
       btn.onclick = function(e) { switchTab('cat-page-' + sanitizeClass(cat), e); };
       navContainer.appendChild(btn);
 
+      // 2. صفحة القسم المستقلة
       const catDiv = document.createElement('div');
       catDiv.id = 'cat-page-' + sanitizeClass(cat);
       catDiv.className = "section-content";
@@ -620,16 +619,14 @@
   }
 
   function updateReports() {
-    // 1. حساب أرباح شهر 11 (نوفمبر) والمتوسط اليومي
     let novTotalProfit = 0;
     const novDaysSet = new Set();
 
     allSales.forEach(sale => {
       const d = sale.soldAtDate;
-      // الشهر 10 في جافاسكريبت يمثل شهر نوفمبر (لان الشهور تبدأ من 0)
       if (d.getMonth() === 10 && d.getFullYear() === 2026) {
         novTotalProfit += (sale.profit || 0);
-        const dayStr = d.toISOString().split('T')[0]; // تاريخ اليوم YYYY-MM-DD
+        const dayStr = d.toISOString().split('T')[0];
         novDaysSet.add(dayStr);
       }
     });
@@ -640,7 +637,6 @@
     document.getElementById('novProfit').textContent = novTotalProfit.toFixed(2) + " ج.م";
     document.getElementById('avgDailyProfit').textContent = avgDaily.toFixed(2) + " ج.م / يوم";
 
-    // 2. حساب تقارير الأقسام
     const categories = [...new Set(localBatches.map(p => p.category))];
     const tbody = document.getElementById('categoryReportsBody');
     tbody.innerHTML = '';
