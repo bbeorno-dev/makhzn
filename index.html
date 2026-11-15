@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>نظام إدارة مخزون ومبيعات البركة الذكي</title>
-  
-  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0056b3">
 
   <style>
@@ -164,7 +162,7 @@
     <h1>❄️ نظام "البركة للمجمدات" - إدارة المخزون والمبيعات</h1>
   </header>
 
-  <!-- أزرار التنقل الرئيسية وأزرار الأقسام الديناميكية -->
+  <!-- شريط التنقل الرئيسي وأزرار الأقسام الديناميكية -->
   <div class="nav-tabs" id="navTabsContainer">
     <button class="tab-btn active" onclick="switchTab('add-product', event)">➕ إضافة منتج</button>
     <button class="tab-btn" onclick="switchTab('pos', event)">🛒 الكاشير السريع</button>
@@ -400,16 +398,10 @@
 
   onSnapshot(productsRef, (snapshot) => {
     localBatches = [];
-    let totalCap = 0;
-    let expProf = 0;
-
     snapshot.forEach((docSnap) => {
       const item = docSnap.data();
       item.id = docSnap.id;
       localBatches.push(item);
-
-      totalCap += (item.quantity * item.buyPrice);
-      expProf += (item.quantity * (item.sellPrice - item.buyPrice));
     });
 
     updateCategoriesDropdown();
@@ -421,7 +413,6 @@
 
   onSnapshot(salesRef, (snapshot) => {
     allSales = [];
-    let actProf = 0;
     snapshot.forEach(doc => {
       const sale = doc.data();
       if(sale.soldAt && typeof sale.soldAt.toDate === 'function') {
@@ -430,7 +421,6 @@
         sale.soldAtDate = new Date();
       }
       allSales.push(sale);
-      actProf += (sale.profit || 0);
     });
     updateReports();
   });
@@ -479,7 +469,6 @@
 
     const sellQty = parseFloat(document.getElementById('sellQuantity').value) || 0;
     
-    // تم ضبط الهامش العشري هنا ليقبل بيع الكمية بالكامل بدون أخطاء تقريب
     if (sellQty <= 0 || sellQty > (item.quantity + 0.0001)) {
       return alert("الكمية المباعة غير صالحة أو أكبر من المتبقي في هذه الدفعة!");
     }
@@ -554,14 +543,14 @@
     pagesContainer.innerHTML = '';
 
     cats.forEach(cat => {
-      // 1. زر القسم في الأعلى
+      // 1. زر القسم في شريط التنقل العلوي
       const btn = document.createElement('button');
       btn.className = "tab-btn dynamic-cat-btn";
       btn.textContent = `📁 ${cat}`;
       btn.onclick = function(e) { switchTab('cat-page-' + sanitizeClass(cat), e); };
       navContainer.appendChild(btn);
 
-      // 2. صفحة القسم المستقلة
+      // 2. صفحة القسم المستقلة التي تعرض كل منتجاته وتفاصيله
       const catDiv = document.createElement('div');
       catDiv.id = 'cat-page-' + sanitizeClass(cat);
       catDiv.className = "section-content";
