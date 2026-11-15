@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نظام إدارة مخزون ومبيعات البركة الذكي</title>
+  <meta name="theme-color" content="#0056b3">
+
+  <style>
+    :root {
+      --primary: #0056b3;
+      --success: #28a745;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --danger: #dc3545;
+      --warning: #ffc107;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      margin: 0;
+      padding: 15px;
+      color: #333;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      padding: 15px 0;
+      background: var(--primary);
+      color: white;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    header h1 { margin: 0; font-size: 1.6rem; }
+
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 10px 15px;
+      background: #e9ecef;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .section-content { display: none; }
+    .section-content.active { display: block; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      border-right: 5px solid var(--primary);
+    }
+    .stat-card.green { border-right-color: var(--success); }
+    .stat-card.orange { border-right-color: var(--warning); }
+    .stat-card h4 { margin: 0 0 5px 0; color: #666; font-size: 0.9rem; }
+    .stat-card p { margin: 0; font-size: 1.4rem; font-weight: bold; }
+
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+    }
+    .form-group { display: flex; flex-direction: column; position: relative; }
+    label { font-weight: bold; margin-bottom: 6px; font-size: 0.9rem; color: #444; }
+    input, select {
+      padding: 12px;
+      border: 1.5px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      background-color: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid #d4d4d4;
+      z-index: 99;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: #fff;
+      max-height: 150px;
+      overflow-y: auto;
+      border-radius: 0 0 6px 6px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .autocomplete-items div {
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+      font-size: 0.9rem;
+    }
+    .autocomplete-items div:hover { background-color: #e9ecef; }
+
+    button.btn-main {
+      grid-column: 1 / -1;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button.btn-sell { background: var(--success); }
+    button:hover { opacity: 0.9; }
+
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+    th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-size: 0.95rem; }
+    th { background: #e9ecef; color: #333; }
+
+    .row-danger { background-color: #f8d7da !important; color: #721c24; font-weight: bold; }
+    .row-warning { background-color: #fff3cd !important; color: #856404; }
+    .badge-danger { background: var(--danger); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; }
+    .badge-warning { background: var(--warning); color: #333; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; }
+    .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>❄️ نظام "البركة للمجمدات" - إدارة المخزون والمبيعات</h1>
+  </header>
+
+  <!-- شريط التنقل الرئيسي وأزرار الأقسام الديناميكية -->
+  <div class="nav-tabs" id="navTabsContainer">
+    <button class="tab-btn active" onclick="switchTab('add-product', event)">➕ إضافة منتج</button>
+    <button class="tab-btn" onclick="switchTab('pos', event)">🛒 الكاشير السريع</button>
+    <button class="tab-btn" onclick="switchTab('expiring', event)">⚠️ تنبيهات الصلاحية</button>
+    <button class="tab-btn" onclick="switchTab('reports', event)">📊 الأرباح والتقارير</button>
+  </div>
+
+  <!-- 1. إضافة منتج -->
+  <div id="add-product" class="section-content active">
+    <div class="card">
+      <h3>إضافة دفعة / شحنة جديدة</h3>
+      <form id="productForm" class="form-grid">
+        <div class="form-group">
+          <label>القسم الرئيسي</label>
+          <select id="category" onchange="checkNewCategoryOption()" required>
+            <option value="لحوم وكبدة">لحوم وكبدة</option>
+            <option value="أسماك ورنجة">أسماك ورنجة</option>
+            <option value="توابل">توابل</option>
+            <option value="بيض">بيض</option>
+            <option value="مصنعات وبطاطس">مصنعات وبطاطس</option>
+            <option value="__NEW__">+ إضافة قسم جديد...</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="newCategoryGroup" style="display:none;">
+          <label>اسم القسم الجديد</label>
+          <input type="text" id="customCategoryName" placeholder="اكتب اسم القسم الجديد هنا">
+        </div>
+
+        <div class="form-group" style="position:relative;">
+          <label>اسم المنتج</label>
+          <input type="text" id="name" required placeholder="مثال: كبدة إسكندراني / رنحة سوبر" autocomplete="off" oninput="showSuggestions(this.value)">
+          <div id="autocompleteList" class="autocomplete-items"></div>
+        </div>
+
+        <div class="form-group">
+          <label>الكمية (بالكيلو العشري أو العدد - مثال: 1.200 أو 50)</label>
+          <input type="number" step="0.001" id="totalQtyInput" required value="0" min="0">
+        </div>
+
+        <div class="form-group">
+          <label>تاريخ الإنتاج</label>
+          <input type="date" id="prodDate" required>
+        </div>
+        <div class="form-group">
+          <label>مدة الصلاحية (بالأشهر)</label>
+          <input type="number" id="shelfMonths" required placeholder="مثال: 6">
+        </div>
+        <div class="form-group">
+          <label>سعر الشراء (للوحدة أو الكيلو)</label>
+          <input type="number" step="0.5" id="buyPrice" required placeholder="140">
+        </div>
+        <div class="form-group">
+          <label>سعر البيع المقترح</label>
+          <input type="number" step="0.5" id="sellPrice" required placeholder="160">
+        </div>
+        <button type="submit" class="btn-main">حفظ الدفعة في المخزن</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. الكاشير -->
+  <div id="pos" class="section-content">
+    <div class="card" style="border-top: 4px solid var(--success);">
+      <h3>🛒 الكاشير السريع - خصم المخزون وتسجيل المبيعات</h3>
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>بحث بالاسم أو القسم:</label>
+        <input type="text" id="searchPos" placeholder="اكتب للفلترة السريعة..." oninput="filterPosDropdown()">
+      </div>
+      <form id="sellForm" class="form-grid">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>اختر الدفعة المحددة للبيع منها</label>
+          <select id="sellSelectBatch" required></select>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>الكمية المباعة المطلوبة</label>
+          <input type="number" step="0.001" id="sellQuantity" required value="0" min="0">
+        </div>
+
+        <button type="submit" class="btn-main btn-sell">إتمام البيع وخصم المخزون فوراً</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. التنبيهات -->
+  <div id="expiring" class="section-content">
+    <div class="card" style="border-top: 4px solid var(--warning);">
+      <h3>⚠️ المنتجات التي اقتربت على انتهاء الصلاحية</h3>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>القسم</th>
+              <th>المنتج</th>
+              <th>المتبقي</th>
+              <th>تاريخ الصلاحية</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="expiringBody">
+            <tr><td colspan="5">جاري التحميل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. التقارير -->
+  <div id="reports" class="section-content">
+    <div class="stats-grid" style="margin-bottom: 20px;">
+      <div class="stat-card green">
+        <h4>أرباح شهر نوفمبر (شهر 11)</h4>
+        <p id="novProfit">0 ج.م</p>
+      </div>
+      <div class="stat-card orange">
+        <h4>متوسط المكسب اليومي (شهر 11)</h4>
+        <p id="avgDailyProfit">0 ج.م / يوم</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📊 تفاصيل الأرباح ورأس المال لكل قسم</h3>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>القسم</th>
+              <th>رأس المال الحالي للدفعات</th>
+              <th>الأرباح المحققة من المبيعات</th>
+            </tr>
+          </thead>
+          <tbody id="categoryReportsBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. حاوية صفحات الأقسام المستقلة الديناميكية -->
+  <div id="dynamic-category-pages"></div>
+
+</div>
+
+<!-- Firebase SDKs & Logic -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDd1u5PvoSgxc_RPh5eIerP_4WBOMsMtAk",
+    authDomain: "makhzn-944f7.firebaseapp.com",
+    projectId: "makhzn-944f7",
+    storageBucket: "makhzn-944f7.firebasestorage.app",
+    messagingSenderId: "809029795722",
+    appId: "1:809029795722:web:30cbe4fc29d3e8d6a35273",
+    measurementId: "G-HQC0NCMEJP"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const productsRef = collection(db, "products");
+  const salesRef = collection(db, "sales");
+
+  let localBatches = [];
+  let allSales = [];
+
+  window.switchTab = function(tabId, event) {
+    document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    
+    const target = document.getElementById(tabId);
+    if(target) target.classList.add('active');
+    if(event && event.currentTarget) event.currentTarget.classList.add('active');
+  };
+
+  window.checkNewCategoryOption = function() {
+    const val = document.getElementById('category').value;
+    document.getElementById('newCategoryGroup').style.display = val === '__NEW__' ? 'flex' : 'none';
+  };
+
+  window.showSuggestions = function(val) {
+    const listDiv = document.getElementById('autocompleteList');
+    listDiv.innerHTML = '';
+    if (!val) return;
+
+    const uniqueNames = [...new Set(localBatches.map(p => p.name))];
+    const matches = uniqueNames.filter(name => name.toLowerCase().includes(val.toLowerCase()));
+
+    matches.forEach(match => {
+      const item = document.createElement('div');
+      item.innerHTML = `<strong>${match}</strong>`;
+      item.onclick = function() {
+        document.getElementById('name').value = match;
+        listDiv.innerHTML = '';
+      };
+      listDiv.appendChild(item);
+    });
+  };
+
+  document.getElementById('productForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    let selectedCat = document.getElementById('category').value;
+    if (selectedCat === '__NEW__') {
+      selectedCat = document.getElementById('customCategoryName').value.trim();
+      if (!selectedCat) return alert("يرجى كتابة اسم القسم الجديد!");
+    }
+
+    const totalQty = parseFloat(document.getElementById('totalQtyInput').value) || 0;
+    const prodDateStr = document.getElementById('prodDate').value;
+    const shelfMonths = parseInt(document.getElementById('shelfMonths').value);
+    const pDate = new Date(prodDateStr);
+    pDate.setMonth(pDate.getMonth() + shelfMonths);
+    const expDateStr = pDate.toISOString().split('T')[0];
+
+    try {
+      await addDoc(productsRef, {
+        category: selectedCat,
+        name: document.getElementById('name').value,
+        quantity: totalQty,
+        prodDate: prodDateStr,
+        expDate: expDateStr,
+        buyPrice: parseFloat(document.getElementById('buyPrice').value),
+        sellPrice: parseFloat(document.getElementById('sellPrice').value),
+        createdAt: new Date()
+      });
+      document.getElementById('productForm').reset();
+      document.getElementById('newCategoryGroup').style.display = 'none';
+      alert("تمت إضافة الدفعة بنجاح!");
+    } catch (err) {
+      alert("خطأ في الحفظ: " + err.message);
+    }
+  });
+
+  onSnapshot(productsRef, (snapshot) => {
+    localBatches = [];
+    snapshot.forEach((docSnap) => {
+      const item = docSnap.data();
+      item.id = docSnap.id;
+      localBatches.push(item);
+    });
+
+    updateCategoriesDropdown();
+    filterPosDropdown();
+    renderExpiringProducts();
+    renderDynamicCategoryPages();
+    updateReports();
+  });
+
+  onSnapshot(salesRef, (snapshot) => {
+    allSales = [];
+    snapshot.forEach(doc => {
+      const sale = doc.data();
+      if(sale.soldAt && typeof sale.soldAt.toDate === 'function') {
+        sale.soldAtDate = sale.soldAt.toDate();
+      } else {
+        sale.soldAtDate = new Date();
+      }
+      allSales.push(sale);
+    });
+    updateReports();
+  });
+
+  function updateCategoriesDropdown() {
+    const select = document.getElementById('category');
+    const existingCats = ["لحوم وكبدة", "أسماك ورنجة", "توابل", "بيض", "مصنعات وبطاطس"];
+    const dynamicCats = [...new Set(localBatches.map(p => p.category))];
+
+    dynamicCats.forEach(cat => {
+      if (!existingCats.includes(cat) && cat) {
+        let exists = Array.from(select.options).some(opt => opt.value === cat);
+        if (!exists) {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          select.insertBefore(opt, select.options[select.options.length - 1]);
+        }
+      }
+    });
+  }
+
+  window.filterPosDropdown = function() {
+    const searchVal = (document.getElementById('searchPos')?.value || '').toLowerCase();
+    const select = document.getElementById('sellSelectBatch');
+    select.innerHTML = '<option value="">-- اختر الدفعة المراد البيع منها --</option>';
+
+    localBatches.forEach(item => {
+      if (item.quantity > 0) {
+        const textStr = `[${item.category}] ${item.name} ${item.buyPrice}ج ${item.expDate}`.toLowerCase();
+        if (textStr.includes(searchVal)) {
+          const opt = document.createElement('option');
+          opt.value = item.id;
+          opt.textContent = `${item.category} ➔ ${item.name} | متبقي: ${item.quantity} | شراء: ${item.buyPrice}ج | ينتهي: ${item.expDate}`;
+          select.appendChild(opt);
+        }
+      }
+    });
+  };
+
+  document.getElementById('sellForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('sellSelectBatch').value;
+    const item = localBatches.find(p => p.id === id);
+    if (!item) return alert("اختر دفعة صحيحة");
+
+    const sellQty = parseFloat(document.getElementById('sellQuantity').value) || 0;
+    
+    if (sellQty <= 0 || sellQty > (item.quantity + 0.0001)) {
+      return alert("الكمية المباعة غير صالحة أو أكبر من المتبقي في هذه الدفعة!");
+    }
+
+    const finalSellQty = Math.min(sellQty, item.quantity);
+    const newQty = Math.max(0, item.quantity - finalSellQty);
+    const profitMade = finalSellQty * (item.sellPrice - item.buyPrice);
+
+    try {
+      await updateDoc(doc(db, "products", id), { quantity: newQty });
+      await addDoc(salesRef, {
+        category: item.category,
+        productName: item.name,
+        soldQty: finalSellQty,
+        profit: profitMade,
+        soldAt: new Date()
+      });
+      alert(`تم البيع بنجاح! المكسب المحقق: ${profitMade.toFixed(2)} ج.م`);
+      document.getElementById('sellForm').reset();
+      filterPosDropdown();
+    } catch (err) {
+      alert("خطأ أثناء البيع: " + err.message);
+    }
+  });
+
+  window.deleteBatch = async function(id) {
+    if (confirm("هل تريد حذف هذه الدفعة نهائياً؟")) {
+      await deleteDoc(doc(db, "products", id));
+    }
+  };
+
+  function renderExpiringProducts() {
+    const tbody = document.getElementById('expiringBody');
+    tbody.innerHTML = '';
+    const today = new Date();
+
+    const criticalItems = localBatches.filter(item => {
+      const expDate = new Date(item.expDate);
+      const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+      return diffDays <= 14;
+    });
+
+    if (criticalItems.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5">لا توجد منتجات قريبة من انتهاء الصلاحية حالياً. ممتاز!</td></tr>`;
+      return;
+    }
+
+    criticalItems.forEach(item => {
+      const expDate = new Date(item.expDate);
+      const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+      let badge = diffDays <= 0 ? "<span class='badge-danger'>منتهي الصلاحية!</span>" : `<span class='badge-danger'>ينتهي خلال ${diffDays} يوم</span>`;
+
+      const tr = document.createElement('tr');
+      tr.className = "row-danger";
+      tr.innerHTML = `
+        <td>${item.category}</td>
+        <td><strong>${item.name}</strong></td>
+        <td>${item.quantity}</td>
+        <td>${item.expDate}</td>
+        <td>${badge}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderDynamicCategoryPages() {
+    const cats = [...new Set(localBatches.map(p => p.category))];
+    const navContainer = document.getElementById('navTabsContainer');
+    const pagesContainer = document.getElementById('dynamic-category-pages');
+
+    document.querySelectorAll('.dynamic-cat-btn').forEach(el => el.remove());
+    pagesContainer.innerHTML = '';
+
+    cats.forEach(cat => {
+      // 1. زر القسم في شريط التنقل العلوي
+      const btn = document.createElement('button');
+      btn.className = "tab-btn dynamic-cat-btn";
+      btn.textContent = `📁 ${cat}`;
+      btn.onclick = function(e) { switchTab('cat-page-' + sanitizeClass(cat), e); };
+      navContainer.appendChild(btn);
+
+      // 2. صفحة القسم المستقلة التي تعرض كل منتجاته وتفاصيله
+      const catDiv = document.createElement('div');
+      catDiv.id = 'cat-page-' + sanitizeClass(cat);
+      catDiv.className = "section-content";
+
+      const catItems = localBatches.filter(p => p.category === cat);
+      let rowsHTML = '';
+
+      if (catItems.length === 0) {
+        rowsHTML = `<tr><td colspan="8">لا توجد دفعات مسجلة في هذا القسم حالياً.</td></tr>`;
+      } else {
+        catItems.forEach(item => {
+          rowsHTML += `
+            <tr>
+              <td><strong>${item.name}</strong></td>
+              <td>${item.quantity}</td>
+              <td>${item.buyPrice} ج.م</td>
+              <td>${item.sellPrice} ج.م</td>
+              <td>${item.prodDate}</td>
+              <td>${item.expDate}</td>
+              <td>${item.quantity <= 2 ? "<span class='badge-warning'>مخزون منخفض</span>" : "سليم"}</td>
+              <td><button class="btn-delete" onclick="deleteBatch('${item.id}')">حذف</button></td>
+            </tr>
+          `;
+        });
+      }
+
+      catDiv.innerHTML = `
+        <div class="card">
+          <h3>📦 منتجات ودفعات قسم: ${cat}</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>المنتج</th>
+                  <th>المتبقي</th>
+                  <th>شراء</th>
+                  <th>بيع</th>
+                  <th>الإنتاج</th>
+                  <th>الصلاحية</th>
+                  <th>الحالة</th>
+                  <th>إجراء</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHTML}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      pagesContainer.appendChild(catDiv);
+    });
+  }
+
+  function sanitizeClass(str) {
+    return str.replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+  }
+
+  function updateReports() {
+    let novTotalProfit = 0;
+    const novDaysSet = new Set();
+
+    allSales.forEach(sale => {
+      const d = sale.soldAtDate;
+      if (d.getMonth() === 10 && d.getFullYear() === 2026) {
+        novTotalProfit += (sale.profit || 0);
+        const dayStr = d.toISOString().split('T')[0];
+        novDaysSet.add(dayStr);
+      }
+    });
+
+    const activeDaysCount = novDaysSet.size > 0 ? novDaysSet.size : 1;
+    const avgDaily = novTotalProfit / activeDaysCount;
+
+    document.getElementById('novProfit').textContent = novTotalProfit.toFixed(2) + " ج.م";
+    document.getElementById('avgDailyProfit').textContent = avgDaily.toFixed(2) + " ج.م / يوم";
+
+    const categories = [...new Set(localBatches.map(p => p.category))];
+    const tbody = document.getElementById('categoryReportsBody');
+    tbody.innerHTML = '';
+
+    if (categories.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="3">لا توجد بيانات حالياً</td></tr>`;
+      return;
+    }
+
+    categories.forEach(cat => {
+      let catCapital = localBatches.filter(p => p.category === cat).reduce((sum, p) => sum + (p.quantity * p.buyPrice), 0);
+      let catProfit = allSales.filter(s => s.category === cat).reduce((sum, s) => sum + s.profit, 0);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${cat}</strong></td>
+        <td>${catCapital.toFixed(2)} ج.م</td>
+        <td style="color: green; font-weight: bold;">${catProfit.toFixed(2)} ج.م</td>
+      `;
+      tbody.innerHTML += tr.outerHTML;
+    });
+  }
+</script>
+
+</body>
+</html>
