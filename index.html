@@ -109,12 +109,9 @@
     }
     input:focus, select:focus { border-color: var(--primary); }
 
-    /* قائمة الاقتراحات الذكية (Autocomplete) */
     .autocomplete-items {
       position: absolute;
       border: 1px solid #d4d4d4;
-      border-bottom: none;
-      border-top: none;
       z-index: 99;
       top: 100%;
       left: 0;
@@ -128,7 +125,7 @@
     .autocomplete-items div {
       padding: 10px;
       cursor: pointer;
-      border-bottom: 1px solid #d4d4d4;
+      border-bottom: 1px solid #eee;
       font-size: 0.9rem;
     }
     .autocomplete-items div:hover { background-color: #e9ecef; }
@@ -167,15 +164,15 @@
     <h1>❄️ نظام "البركة للمجمدات" - إدارة المخزون والمبيعات</h1>
   </header>
 
-  <!-- أزرار التنقل بين الأقسام والصفحات الرئيسية -->
+  <!-- أزرار التنقل الرئيسية -->
   <div class="nav-tabs" id="navTabsContainer">
-    <button class="tab-btn active" onclick="switchTab('add-product')">➕ إضافة منتج</button>
-    <button class="tab-btn" onclick="switchTab('pos')">🛒 الكاشير السريع</button>
-    <button class="tab-btn" onclick="switchTab('expiring')">⚠️ المنتجات التي ستنتهي قريباً</button>
-    <button class="tab-btn" onclick="switchTab('reports')">📊 الأرباح ورأس المال</button>
+    <button class="tab-btn active" onclick="switchTab('add-product', event)">➕ إضافة منتج</button>
+    <button class="tab-btn" onclick="switchTab('pos', event)">🛒 الكاشير السريع</button>
+    <button class="tab-btn" onclick="switchTab('expiring', event)">⚠️ تنبيهات الصلاحية</button>
+    <button class="tab-btn" onclick="switchTab('reports', event)">📊 الأرباح والتقارير</button>
   </div>
 
-  <!-- ================= 1. قسم إضافة منتج / دفعة جديدة ================= -->
+  <!-- 1. إضافة منتج -->
   <div id="add-product" class="section-content active">
     <div class="card">
       <h3>إضافة دفعة / شحنة جديدة</h3>
@@ -197,15 +194,14 @@
           <input type="text" id="customCategoryName" placeholder="اكتب اسم القسم الجديد هنا">
         </div>
 
-        <!-- خانة اسم المنتج مع الاقتراحات الذكية التلقائية -->
-        <div class="form-group" autocomplete="off">
+        <div class="form-group" style="position:relative;">
           <label>اسم المنتج</label>
-          <input type="text" id="name" required placeholder="مثال: كبدة إسكندراني / رنحة سوبر" oninput="showSuggestions(this.value)">
+          <input type="text" id="name" required placeholder="مثال: كبدة إسكندراني / رنحة سوبر" autocomplete="off" oninput="showSuggestions(this.value)">
           <div id="autocompleteList" class="autocomplete-items"></div>
         </div>
 
         <div class="form-group">
-          <label>الكمية بالميزان (بالكيلو العشري - مثال: 1.200 أو 50)</label>
+          <label>الكمية (بالكيلو العشري أو العدد - مثال: 1.200 أو 50)</label>
           <input type="number" step="0.001" id="totalQtyInput" required value="0" min="0">
         </div>
 
@@ -218,7 +214,7 @@
           <input type="number" id="shelfMonths" required placeholder="مثال: 6">
         </div>
         <div class="form-group">
-          <label>سعر الشراء (للكيلو أو الوحدة)</label>
+          <label>سعر الشراء (للوحدة أو الكيلو)</label>
           <input type="number" step="0.5" id="buyPrice" required placeholder="140">
         </div>
         <div class="form-group">
@@ -230,13 +226,13 @@
     </div>
   </div>
 
-  <!-- ================= 2. قسم الكاشير السريع والمبيعات ================= -->
+  <!-- 2. الكاشير -->
   <div id="pos" class="section-content">
     <div class="card" style="border-top: 4px solid var(--success);">
       <h3>🛒 الكاشير السريع - خصم المخزون وتسجيل المبيعات</h3>
       <div class="form-group" style="margin-bottom: 15px;">
-        <label>بحث بالاسم أو القسم للوصول السريع للمنتج:</label>
-        <input type="text" id="searchPos" placeholder="اكتب للفلترة السريعة (مثلاً: رنجة، كبدة...)" oninput="filterPosDropdown()">
+        <label>بحث بالاسم أو القسم:</label>
+        <input type="text" id="searchPos" placeholder="اكتب للفلترة السريعة..." oninput="filterPosDropdown()">
       </div>
       <form id="sellForm" class="form-grid">
         <div class="form-group" style="grid-column: 1 / -1;">
@@ -245,7 +241,7 @@
         </div>
 
         <div class="form-group" style="grid-column: 1 / -1;">
-          <label>الكمية المباعة (بالكيلو العشري أو العدد - مثال: 1.5 أو 3)</label>
+          <label>الكمية المباعة المطلوبة</label>
           <input type="number" step="0.001" id="sellQuantity" required value="0" min="0">
         </div>
 
@@ -254,10 +250,10 @@
     </div>
   </div>
 
-  <!-- ================= 3. قسم التنبيهات (المنتجات القريبة من انتهاء الصلاحية) ================= -->
+  <!-- 3. التنبيهات -->
   <div id="expiring" class="section-content">
     <div class="card" style="border-top: 4px solid var(--warning);">
-      <h3>⚠️ المنتجات التي اقتربت على انتهاء الصلاحية (أقل من 14 يوم أو منتهية)</h3>
+      <h3>⚠️ المنتجات التي اقتربت على انتهاء الصلاحية</h3>
       <div class="table-responsive">
         <table>
           <thead>
@@ -266,21 +262,33 @@
               <th>المنتج</th>
               <th>المتبقي</th>
               <th>تاريخ الصلاحية</th>
-              <th>حالة التنبيه</th>
+              <th>الحالة</th>
             </tr>
           </thead>
           <tbody id="expiringBody">
-            <tr><td colspan="5">لا توجد منتجات حرجة حالياً.</td></tr>
+            <tr><td colspan="5">جاري التحميل...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ================= 4. قسم التقارير والأرباح ================= -->
+  <!-- 4. التقارير والأرباح الشهرية واليومية -->
   <div id="reports" class="section-content">
+    <!-- بطاقات الإحصائيات المتقدمة -->
+    <div class="stats-grid" style="margin-bottom: 20px;">
+      <div class="stat-card green">
+        <h4>أرباح شهر نوفمبر (شهر 11)</h4>
+        <p id="novProfit">0 ج.م</p>
+      </div>
+      <div class="stat-card orange">
+        <h4>متوسط المكسب اليومي (شهر 11)</h4>
+        <p id="avgDailyProfit">0 ج.م / يوم</p>
+      </div>
+    </div>
+
     <div class="card">
-      <h3>📊 تقارير الأرباح ورأس المال بالأقسام</h3>
+      <h3>📊 تفاصيل الأرباح ورأس المال لكل قسم</h3>
       <div class="table-responsive">
         <table>
           <thead>
@@ -296,12 +304,12 @@
     </div>
   </div>
 
-  <!-- ================= 5. صفحات الأقسام الديناميكية المستقلة ================= -->
+  <!-- 5. حاوية صفحات الأقسام المستقلة -->
   <div id="dynamic-category-pages"></div>
 
 </div>
 
-<!-- Firebase SDKs -->
+<!-- Firebase SDKs & Logic -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -324,16 +332,13 @@
   let localBatches = [];
   let allSales = [];
 
-  // نظام التنقل بين التبويبات والصفحات
-  window.switchTab = function(tabId) {
+  window.switchTab = function(tabId, event) {
     document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     
     const target = document.getElementById(tabId);
-    if(target) {
-      target.classList.add('active');
-    }
-    event.currentTarget.classList.add('active');
+    if(target) target.classList.add('active');
+    if(event && event.currentTarget) event.currentTarget.classList.add('active');
   };
 
   window.checkNewCategoryOption = function() {
@@ -341,7 +346,6 @@
     document.getElementById('newCategoryGroup').style.display = val === '__NEW__' ? 'flex' : 'none';
   };
 
-  // نظام الاقتراحات الذكية التلقائية لأسماء المنتجات أثناء الكتابة
   window.showSuggestions = function(val) {
     const listDiv = document.getElementById('autocompleteList');
     listDiv.innerHTML = '';
@@ -353,15 +357,14 @@
     matches.forEach(match => {
       const item = document.createElement('div');
       item.innerHTML = `<strong>${match}</strong>`;
-      item.addEventListener('click', function() {
+      item.onclick = function() {
         document.getElementById('name').value = match;
         listDiv.innerHTML = '';
-      });
+      };
       listDiv.appendChild(item);
     });
   };
 
-  // إضافة دفعة جديدة
   document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     let selectedCat = document.getElementById('category').value;
@@ -396,12 +399,10 @@
     }
   });
 
-  // مزامنة المخزون وتحديث البيانات وقائمتي التنبيهات والأقسام المستقلة
   onSnapshot(productsRef, (snapshot) => {
     localBatches = [];
     let totalCap = 0;
     let expProf = 0;
-    const today = new Date();
 
     snapshot.forEach((docSnap) => {
       const item = docSnap.data();
@@ -412,7 +413,6 @@
       expProf += (item.quantity * (item.sellPrice - item.buyPrice));
     });
 
-    // تحديث الإحصائيات العامة
     document.getElementById('totalCapital').textContent = totalCap.toFixed(2) + " ج.م";
     document.getElementById('expectedProfit').textContent = expProf.toFixed(2) + " ج.م";
     
@@ -428,6 +428,12 @@
     let actProf = 0;
     snapshot.forEach(doc => {
       const sale = doc.data();
+      // تحويل تاريخ البيع إلى كائن تاريخ بشكل آمن
+      if(sale.soldAt && typeof sale.soldAt.toDate === 'function') {
+        sale.soldAtDate = sale.soldAt.toDate();
+      } else {
+        sale.soldAtDate = new Date();
+      }
       allSales.push(sale);
       actProf += (sale.profit || 0);
     });
@@ -471,12 +477,11 @@
     });
   };
 
-  // إتمام عملية البيع بالكاشير
   document.getElementById('sellForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('sellSelectBatch').value;
     const item = localBatches.find(p => p.id === id);
-    if (!item) return alert("اختر دفعة صحيحة من القائمة");
+    if (!item) return alert("اختر دفعة صحيحة");
 
     const sellQty = parseFloat(document.getElementById('sellQuantity').value) || 0;
     if (sellQty <= 0 || sellQty > item.quantity) {
@@ -497,6 +502,7 @@
       });
       alert(`تم البيع بنجاح! المكسب المحقق: ${profitMade.toFixed(2)} ج.م`);
       document.getElementById('sellForm').reset();
+      filterPosDropdown();
     } catch (err) {
       alert("خطأ أثناء البيع: " + err.message);
     }
@@ -508,7 +514,6 @@
     }
   };
 
-  // رصد المنتجات قرب انتهاء الصلاحية في صفحتها المستقلة
   function renderExpiringProducts() {
     const tbody = document.getElementById('expiringBody');
     tbody.innerHTML = '';
@@ -543,32 +548,28 @@
     });
   }
 
-  // توليد صفحات مستقلة لكل قسم تلقائياً (بما فيها الأقسام الجديدة المضافة)
   function renderDynamicCategoryPages() {
     const cats = [...new Set(localBatches.map(p => p.category))];
     const navContainer = document.getElementById('navTabsContainer');
     const pagesContainer = document.getElementById('dynamic-category-pages');
 
-    // إزالة أزرار الأقسام القديمة الديناميكية لمنع التكرار
     document.querySelectorAll('.dynamic-cat-btn').forEach(el => el.remove());
     pagesContainer.innerHTML = '';
 
     cats.forEach(cat => {
-      // 1. إنشاء زر التنقل للقسم في الأعلى
       const btn = document.createElement('button');
       btn.className = "tab-btn dynamic-cat-btn";
       btn.textContent = `📁 ${cat}`;
-      btn.onclick = function() { switchTab('cat-page-' + sanitizeClass(cat)); };
+      btn.onclick = function(e) { switchTab('cat-page-' + sanitizeClass(cat), e); };
       navContainer.appendChild(btn);
 
-      // 2. إنشاء صفحة مستقلة لكل قسم
       const catDiv = document.createElement('div');
       catDiv.id = 'cat-page-' + sanitizeClass(cat);
       catDiv.className = "section-content";
 
       const catItems = localBatches.filter(p => p.category === cat);
-
       let rowsHTML = '';
+
       if (catItems.length === 0) {
         rowsHTML = `<tr><td colspan="8">لا توجد دفعات مسجلة في هذا القسم حالياً.</td></tr>`;
       } else {
@@ -596,11 +597,11 @@
               <thead>
                 <tr>
                   <th>المنتج</th>
-                  <th>المتبقي بالمخزن</th>
+                  <th>المتبقي</th>
                   <th>شراء</th>
                   <th>بيع</th>
-                  <th>تاريخ الإنتاج</th>
-                  <th>تاريخ الصلاحية</th>
+                  <th>الإنتاج</th>
+                  <th>الصلاحية</th>
                   <th>الحالة</th>
                   <th>إجراء</th>
                 </tr>
@@ -619,6 +620,27 @@
   }
 
   function updateReports() {
+    // 1. حساب أرباح شهر 11 (نوفمبر) والمتوسط اليومي
+    let novTotalProfit = 0;
+    const novDaysSet = new Set();
+
+    allSales.forEach(sale => {
+      const d = sale.soldAtDate;
+      // الشهر 10 في جافاسكريبت يمثل شهر نوفمبر (لان الشهور تبدأ من 0)
+      if (d.getMonth() === 10 && d.getFullYear() === 2026) {
+        novTotalProfit += (sale.profit || 0);
+        const dayStr = d.toISOString().split('T')[0]; // تاريخ اليوم YYYY-MM-DD
+        novDaysSet.add(dayStr);
+      }
+    });
+
+    const activeDaysCount = novDaysSet.size > 0 ? novDaysSet.size : 1;
+    const avgDaily = novTotalProfit / activeDaysCount;
+
+    document.getElementById('novProfit').textContent = novTotalProfit.toFixed(2) + " ج.م";
+    document.getElementById('avgDailyProfit').textContent = avgDaily.toFixed(2) + " ج.م / يوم";
+
+    // 2. حساب تقارير الأقسام
     const categories = [...new Set(localBatches.map(p => p.category))];
     const tbody = document.getElementById('categoryReportsBody');
     tbody.innerHTML = '';
