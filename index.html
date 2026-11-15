@@ -42,18 +42,18 @@
     .nav-tabs {
       display: flex;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 20px;
       flex-wrap: wrap;
     }
     .tab-btn {
-      padding: 10px 20px;
+      padding: 10px 15px;
       background: #e9ecef;
       border: none;
       border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: 0.95rem;
       transition: 0.2s;
     }
     .tab-btn.active {
@@ -96,7 +96,7 @@
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 15px;
     }
-    .form-group { display: flex; flex-direction: column; }
+    .form-group { display: flex; flex-direction: column; position: relative; }
     label { font-weight: bold; margin-bottom: 6px; font-size: 0.9rem; color: #444; }
     input, select {
       padding: 12px;
@@ -107,25 +107,31 @@
       outline: none;
       transition: border-color 0.2s;
     }
-    input:focus, select:focus {
-      border-color: var(--primary);
-    }
+    input:focus, select:focus { border-color: var(--primary); }
 
-    .quick-weight-btns {
-      display: flex;
-      gap: 5px;
-      margin-top: 8px;
+    /* قائمة الاقتراحات الذكية (Autocomplete) */
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid #d4d4d4;
+      border-bottom: none;
+      border-top: none;
+      z-index: 99;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: #fff;
+      max-height: 150px;
+      overflow-y: auto;
+      border-radius: 0 0 6px 6px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
-    .btn-qty-shortcut {
-      padding: 8px;
-      background: #e9ecef;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 0.85rem;
+    .autocomplete-items div {
+      padding: 10px;
       cursor: pointer;
-      font-weight: bold;
+      border-bottom: 1px solid #d4d4d4;
+      font-size: 0.9rem;
     }
-    .btn-qty-shortcut:hover { background: #d6d8db; }
+    .autocomplete-items div:hover { background-color: #e9ecef; }
 
     button.btn-main {
       grid-column: 1 / -1;
@@ -161,36 +167,22 @@
     <h1>❄️ نظام "البركة للمجمدات" - إدارة المخزون والمبيعات</h1>
   </header>
 
-  <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('inventory')">📦 المخزون والدفعات</button>
-    <button class="tab-btn" onclick="switchTab('pos')">🛒 الكاشير المباشر</button>
-    <button class="tab-btn" onclick="switchTab('reports')">📊 أرباح الأقسام ورأس المال</button>
+  <!-- أزرار التنقل بين الأقسام والصفحات الرئيسية -->
+  <div class="nav-tabs" id="navTabsContainer">
+    <button class="tab-btn active" onclick="switchTab('add-product')">➕ إضافة منتج</button>
+    <button class="tab-btn" onclick="switchTab('pos')">🛒 الكاشير السريع</button>
+    <button class="tab-btn" onclick="switchTab('expiring')">⚠️ المنتجات التي ستنتهي قريباً</button>
+    <button class="tab-btn" onclick="switchTab('reports')">📊 الأرباح ورأس المال</button>
   </div>
 
-  <!-- ================= قسم المخزون والدفعات ================= -->
-  <div id="inventory" class="section-content active">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h4>إجمالي رأس المال بالمخزن</h4>
-        <p id="totalCapital">0 ج.م</p>
-      </div>
-      <div class="stat-card orange">
-        <h4>الأرباح المتوقعة</h4>
-        <p id="expectedProfit">0 ج.م</p>
-      </div>
-      <div class="stat-card green">
-        <h4>إجمالي الأرباح المحققة</h4>
-        <p id="actualProfit">0 ج.م</p>
-      </div>
-    </div>
-
-    <!-- نموذج إضافة شحنة جديدة -->
+  <!-- ================= 1. قسم إضافة منتج / دفعة جديدة ================= -->
+  <div id="add-product" class="section-content active">
     <div class="card">
       <h3>إضافة دفعة / شحنة جديدة</h3>
       <form id="productForm" class="form-grid">
         <div class="form-group">
           <label>القسم الرئيسي</label>
-          <select id="category" onchange="onCategoryChange()" required>
+          <select id="category" onchange="checkNewCategoryOption()" required>
             <option value="لحوم وكبدة">لحوم وكبدة</option>
             <option value="أسماك ورنجة">أسماك ورنجة</option>
             <option value="توابل">توابل</option>
@@ -205,24 +197,16 @@
           <input type="text" id="customCategoryName" placeholder="اكتب اسم القسم الجديد هنا">
         </div>
 
-        <div class="form-group">
+        <!-- خانة اسم المنتج مع الاقتراحات الذكية التلقائية -->
+        <div class="form-group" autocomplete="off">
           <label>اسم المنتج</label>
-          <input type="text" id="name" required placeholder="مثال: بيض أحمر / رنحة سوبر">
+          <input type="text" id="name" required placeholder="مثال: كبدة إسكندراني / رنحة سوبر" oninput="showSuggestions(this.value)">
+          <div id="autocompleteList" class="autocomplete-items"></div>
         </div>
 
-        <!-- حقول الكمية المرنة حسب القسم -->
-        <div class="form-group qty-weight-box">
-          <label>الوزن (كيلو)</label>
-          <input type="number" id="weightKg" value="0" min="0">
-        </div>
-        <div class="form-group qty-weight-box">
-          <label>الوزن (جرام)</label>
-          <input type="number" id="weightGram" value="0" min="0" max="999" step="50">
-        </div>
-
-        <div class="form-group qty-unit-box" style="display:none;">
-          <label id="lblQtyNum">الكمية (عدد الوحدات / الأكياس / الأطباق)</label>
-          <input type="number" id="qtyNumber" value="0" min="0">
+        <div class="form-group">
+          <label>الكمية بالميزان (بالكيلو العشري - مثال: 1.200 أو 50)</label>
+          <input type="number" step="0.001" id="totalQtyInput" required value="0" min="0">
         </div>
 
         <div class="form-group">
@@ -234,82 +218,66 @@
           <input type="number" id="shelfMonths" required placeholder="مثال: 6">
         </div>
         <div class="form-group">
-          <label>سعر الشراء (هذه الدفعة)</label>
+          <label>سعر الشراء (للكيلو أو الوحدة)</label>
           <input type="number" step="0.5" id="buyPrice" required placeholder="140">
         </div>
         <div class="form-group">
           <label>سعر البيع المقترح</label>
           <input type="number" step="0.5" id="sellPrice" required placeholder="160">
         </div>
-        <button type="submit" class="btn-main">حفظ الدفعة الجديدة</button>
+        <button type="submit" class="btn-main">حفظ الدفعة في المخزن</button>
       </form>
     </div>
+  </div>
 
-    <!-- جدول المخزون والدفعات -->
-    <div class="card">
-      <h3>جدول متابعة كافة الدفعات والتنبيهات</h3>
+  <!-- ================= 2. قسم الكاشير السريع والمبيعات ================= -->
+  <div id="pos" class="section-content">
+    <div class="card" style="border-top: 4px solid var(--success);">
+      <h3>🛒 الكاشير السريع - خصم المخزون وتسجيل المبيعات</h3>
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>بحث بالاسم أو القسم للوصول السريع للمنتج:</label>
+        <input type="text" id="searchPos" placeholder="اكتب للفلترة السريعة (مثلاً: رنجة، كبدة...)" oninput="filterPosDropdown()">
+      </div>
+      <form id="sellForm" class="form-grid">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>اختر الدفعة المحددة للبيع منها</label>
+          <select id="sellSelectBatch" required></select>
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>الكمية المباعة (بالكيلو العشري أو العدد - مثال: 1.5 أو 3)</label>
+          <input type="number" step="0.001" id="sellQuantity" required value="0" min="0">
+        </div>
+
+        <button type="submit" class="btn-main btn-sell">إتمام البيع وخصم المخزون فوراً</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 3. قسم التنبيهات (المنتجات القريبة من انتهاء الصلاحية) ================= -->
+  <div id="expiring" class="section-content">
+    <div class="card" style="border-top: 4px solid var(--warning);">
+      <h3>⚠️ المنتجات التي اقتربت على انتهاء الصلاحية (أقل من 14 يوم أو منتهية)</h3>
       <div class="table-responsive">
         <table>
           <thead>
             <tr>
               <th>القسم</th>
               <th>المنتج</th>
-              <th>المتبقي بالمخزن</th>
-              <th>سعر الشراء</th>
-              <th>سعر البيع</th>
-              <th>تاريخ الإنتاج</th>
+              <th>المتبقي</th>
               <th>تاريخ الصلاحية</th>
-              <th>الحالة والتنبيهات</th>
-              <th>إجراء</th>
+              <th>حالة التنبيه</th>
             </tr>
           </thead>
-          <tbody id="inventoryBody">
-            <tr><td colspan="9">جاري التحميل...</td></tr>
+          <tbody id="expiringBody">
+            <tr><td colspan="5">لا توجد منتجات حرجة حالياً.</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ================= قسم البيع (الكاشير) ================= -->
-  <div id="pos" class="section-content">
-    <div class="card" style="border-top: 4px solid var(--success);">
-      <h3>الكاشير - تسريع عملية البيع</h3>
-      <div class="form-group" style="margin-bottom: 15px;">
-        <label>بحث سريع باسم المنتج:</label>
-        <input type="text" id="searchPos" placeholder="اكتب للفلترة السريعة (مثلاً: رنجة، توابل...)" oninput="filterPosDropdown()">
-      </div>
-      <form id="sellForm" class="form-grid">
-        <div class="form-group" style="grid-column: 1 / -1;">
-          <label>اختر الدفعة المراد البيع منها</label>
-          <select id="sellSelectBatch" required onchange="setupSellQuantityFields()"></select>
-        </div>
-
-        <div class="form-group sell-weight-fields">
-          <label>الكمية المباعة (كيلو)</label>
-          <input type="number" id="sellKg" value="0" step="0.1" min="0">
-        </div>
-        <div class="form-group sell-weight-fields">
-          <label>الكمية المباعة (جرام)</label>
-          <input type="number" id="sellGram" value="0" step="50" min="0" max="999">
-          <div class="quick-weight-btns">
-            <button type="button" class="btn-qty-shortcut" onclick="setQuickGram(250)">ربع كيلو (250ج)</button>
-            <button type="button" class="btn-qty-shortcut" onclick="setQuickGram(500)">نصف كيلو (500ج)</button>
-            <button type="button" class="btn-qty-shortcut" onclick="setQuickGram(750)">3/4 كيلو (750ج)</button>
-          </div>
-        </div>
-
-        <div class="form-group sell-other-fields" style="display:none;">
-          <label id="lblSellUnit">الكمية المباعة</label>
-          <input type="number" id="sellQtyNumber" value="0" min="0">
-        </div>
-
-        <button type="submit" class="btn-main btn-sell">إتمام عملية البيع وخصم المخزون</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- ================= قسم التقارير ================= -->
+  <!-- ================= 4. قسم التقارير والأرباح ================= -->
   <div id="reports" class="section-content">
     <div class="card">
       <h3>📊 تقارير الأرباح ورأس المال بالأقسام</h3>
@@ -327,6 +295,9 @@
       </div>
     </div>
   </div>
+
+  <!-- ================= 5. صفحات الأقسام الديناميكية المستقلة ================= -->
+  <div id="dynamic-category-pages"></div>
 
 </div>
 
@@ -353,38 +324,44 @@
   let localBatches = [];
   let allSales = [];
 
+  // نظام التنقل بين التبويبات والصفحات
   window.switchTab = function(tabId) {
     document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
+    
+    const target = document.getElementById(tabId);
+    if(target) {
+      target.classList.add('active');
+    }
     event.currentTarget.classList.add('active');
   };
 
-  // التحكم التلقائي بخانات الإدخال حسب القسم المختاره
-  window.onCategoryChange = function() {
+  window.checkNewCategoryOption = function() {
     const val = document.getElementById('category').value;
     document.getElementById('newCategoryGroup').style.display = val === '__NEW__' ? 'flex' : 'none';
-
-    // الأقسام التي تعتمد على العدد أو العلب وليست وزناً
-    const countBasedCategories = ["توابل", "بيض", "مصنعات وبطاطس"];
-    const isCountBased = countBasedCategories.includes(val);
-
-    document.querySelectorAll('.qty-weight-box').forEach(el => el.style.display = isCountBased ? 'none' : 'flex');
-    document.querySelectorAll('.qty-unit-box').forEach(el => el.style.display = isCountBased ? 'flex' : 'none');
-    
-    if(val === "بيض") {
-      document.getElementById('lblQtyNum').textContent = "عدد الأطباق / كراتين البيض";
-    } else if(val === "توابل") {
-      document.getElementById('lblQtyNum').textContent = "عدد العبوات / الأكياس";
-    } else {
-      document.getElementById('lblQtyNum').textContent = "الكمية (العدد)";
-    }
   };
 
-  window.setQuickGram = function(gram) {
-    document.getElementById('sellGram').value = gram;
+  // نظام الاقتراحات الذكية التلقائية لأسماء المنتجات أثناء الكتابة
+  window.showSuggestions = function(val) {
+    const listDiv = document.getElementById('autocompleteList');
+    listDiv.innerHTML = '';
+    if (!val) return;
+
+    const uniqueNames = [...new Set(localBatches.map(p => p.name))];
+    const matches = uniqueNames.filter(name => name.toLowerCase().includes(val.toLowerCase()));
+
+    matches.forEach(match => {
+      const item = document.createElement('div');
+      item.innerHTML = `<strong>${match}</strong>`;
+      item.addEventListener('click', function() {
+        document.getElementById('name').value = match;
+        listDiv.innerHTML = '';
+      });
+      listDiv.appendChild(item);
+    });
   };
 
+  // إضافة دفعة جديدة
   document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     let selectedCat = document.getElementById('category').value;
@@ -393,22 +370,7 @@
       if (!selectedCat) return alert("يرجى كتابة اسم القسم الجديد!");
     }
 
-    const countBasedCategories = ["توابل", "بيض", "مصنعات وبطاطس"];
-    const isCountBased = countBasedCategories.includes(selectedCat);
-    
-    let totalQty = 0;
-    let unitTypeStr = 'weight';
-
-    if (isCountBased) {
-      totalQty = parseFloat(document.getElementById('qtyNumber').value) || 0;
-      unitTypeStr = 'piece';
-    } else {
-      const kg = parseFloat(document.getElementById('weightKg').value) || 0;
-      const g = parseFloat(document.getElementById('weightGram').value) || 0;
-      totalQty = kg + (g / 1000);
-      unitTypeStr = 'weight';
-    }
-
+    const totalQty = parseFloat(document.getElementById('totalQtyInput').value) || 0;
     const prodDateStr = document.getElementById('prodDate').value;
     const shelfMonths = parseInt(document.getElementById('shelfMonths').value);
     const pDate = new Date(prodDateStr);
@@ -419,7 +381,6 @@
       await addDoc(productsRef, {
         category: selectedCat,
         name: document.getElementById('name').value,
-        unitType: unitTypeStr,
         quantity: totalQty,
         prodDate: prodDateStr,
         expDate: expDateStr,
@@ -429,17 +390,14 @@
       });
       document.getElementById('productForm').reset();
       document.getElementById('newCategoryGroup').style.display = 'none';
-      onCategoryChange(); // إعادة ضبط خانات النموذج
       alert("تمت إضافة الدفعة بنجاح!");
     } catch (err) {
       alert("خطأ في الحفظ: " + err.message);
     }
   });
 
+  // مزامنة المخزون وتحديث البيانات وقائمتي التنبيهات والأقسام المستقلة
   onSnapshot(productsRef, (snapshot) => {
-    const tbody = document.getElementById('inventoryBody');
-    tbody.innerHTML = '';
-    
     localBatches = [];
     let totalCap = 0;
     let expProf = 0;
@@ -452,45 +410,16 @@
 
       totalCap += (item.quantity * item.buyPrice);
       expProf += (item.quantity * (item.sellPrice - item.buyPrice));
-
-      const expDate = new Date(item.expDate);
-      const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
-
-      let rowClass = "";
-      let statusBadge = "سليم";
-
-      if (diffDays <= 0) {
-        rowClass = "row-danger";
-        statusBadge = "<span class='badge-danger'>منتهي الصلاحية</span>";
-      } else if (diffDays <= 14) {
-        rowClass = "row-danger";
-        statusBadge = "<span class='badge-danger'>ينتهي خلال " + diffDays + " يوم!</span>";
-      } else if (item.quantity <= 2) {
-        rowClass = "row-warning";
-        statusBadge = "<span class='badge-warning'>مخزون منخفض جِداً!</span>";
-      }
-
-      const tr = document.createElement('tr');
-      tr.className = rowClass;
-      tr.innerHTML = `
-        <td>${item.category}</td>
-        <td><strong>${item.name}</strong></td>
-        <td>${formatQty(item)}</td>
-        <td>${item.buyPrice} ج.م</td>
-        <td>${item.sellPrice} ج.م</td>
-        <td>${item.prodDate}</td>
-        <td>${item.expDate}</td>
-        <td>${statusBadge}</td>
-        <td><button class="btn-delete" onclick="deleteBatch('${item.id}')">حذف</button></td>
-      `;
-      tbody.appendChild(tr);
     });
 
+    // تحديث الإحصائيات العامة
     document.getElementById('totalCapital').textContent = totalCap.toFixed(2) + " ج.م";
     document.getElementById('expectedProfit').textContent = expProf.toFixed(2) + " ج.م";
     
     updateCategoriesDropdown();
     filterPosDropdown();
+    renderExpiringProducts();
+    renderDynamicCategoryPages();
     updateReports();
   });
 
@@ -535,47 +464,21 @@
         if (textStr.includes(searchVal)) {
           const opt = document.createElement('option');
           opt.value = item.id;
-          opt.textContent = `${item.name} | متبقي: ${formatQty(item)} | شراء: ${item.buyPrice}ج | ينتهي: ${item.expDate}`;
+          opt.textContent = `${item.category} ➔ ${item.name} | متبقي: ${item.quantity} | شراء: ${item.buyPrice}ج | ينتهي: ${item.expDate}`;
           select.appendChild(opt);
         }
       }
     });
   };
 
-  function formatQty(item) {
-    if (item.unitType === 'weight') {
-      const kg = Math.floor(item.quantity);
-      const grams = Math.round((item.quantity - kg) * 1000);
-      return `${kg} ك و ${grams} جرام`;
-    }
-    return `${item.quantity} وحدة/طبق`;
-  }
-
-  window.setupSellQuantityFields = function() {
-    const id = document.getElementById('sellSelectBatch').value;
-    const item = localBatches.find(p => p.id === id);
-    if (!item) return;
-
-    const isWeight = item.unitType === 'weight';
-    document.querySelectorAll('.sell-weight-fields').forEach(el => el.style.display = isWeight ? 'flex' : 'none');
-    document.querySelectorAll('.sell-other-fields').forEach(el => el.style.display = isWeight ? 'none' : 'flex');
-  };
-
+  // إتمام عملية البيع بالكاشير
   document.getElementById('sellForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('sellSelectBatch').value;
     const item = localBatches.find(p => p.id === id);
-    if (!item) return alert("اختر دفعة صحيحة");
+    if (!item) return alert("اختر دفعة صحيحة من القائمة");
 
-    let sellQty = 0;
-    if (item.unitType === 'weight') {
-      const kg = parseFloat(document.getElementById('sellKg').value) || 0;
-      const g = parseFloat(document.getElementById('sellGram').value) || 0;
-      sellQty = kg + (g / 1000);
-    } else {
-      sellQty = parseFloat(document.getElementById('sellQtyNumber').value) || 0;
-    }
-
+    const sellQty = parseFloat(document.getElementById('sellQuantity').value) || 0;
     if (sellQty <= 0 || sellQty > item.quantity) {
       return alert("الكمية المباعة غير صالحة أو أكبر من المتبقي في هذه الدفعة!");
     }
@@ -600,10 +503,120 @@
   });
 
   window.deleteBatch = async function(id) {
-    if (confirm("هل تريد حذف هذه الدفعة؟")) {
+    if (confirm("هل تريد حذف هذه الدفعة نهائياً؟")) {
       await deleteDoc(doc(db, "products", id));
     }
   };
+
+  // رصد المنتجات قرب انتهاء الصلاحية في صفحتها المستقلة
+  function renderExpiringProducts() {
+    const tbody = document.getElementById('expiringBody');
+    tbody.innerHTML = '';
+    const today = new Date();
+
+    const criticalItems = localBatches.filter(item => {
+      const expDate = new Date(item.expDate);
+      const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+      return diffDays <= 14;
+    });
+
+    if (criticalItems.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5">لا توجد منتجات قريبة من انتهاء الصلاحية حالياً. ممتاز!</td></tr>`;
+      return;
+    }
+
+    criticalItems.forEach(item => {
+      const expDate = new Date(item.expDate);
+      const diffDays = Math.ceil((expDate - today) / (1000 * 60 * 60 * 24));
+      let badge = diffDays <= 0 ? "<span class='badge-danger'>منتهي الصلاحية!</span>" : `<span class='badge-danger'>ينتهي خلال ${diffDays} يوم</span>`;
+
+      const tr = document.createElement('tr');
+      tr.className = "row-danger";
+      tr.innerHTML = `
+        <td>${item.category}</td>
+        <td><strong>${item.name}</strong></td>
+        <td>${item.quantity}</td>
+        <td>${item.expDate}</td>
+        <td>${badge}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // توليد صفحات مستقلة لكل قسم تلقائياً (بما فيها الأقسام الجديدة المضافة)
+  function renderDynamicCategoryPages() {
+    const cats = [...new Set(localBatches.map(p => p.category))];
+    const navContainer = document.getElementById('navTabsContainer');
+    const pagesContainer = document.getElementById('dynamic-category-pages');
+
+    // إزالة أزرار الأقسام القديمة الديناميكية لمنع التكرار
+    document.querySelectorAll('.dynamic-cat-btn').forEach(el => el.remove());
+    pagesContainer.innerHTML = '';
+
+    cats.forEach(cat => {
+      // 1. إنشاء زر التنقل للقسم في الأعلى
+      const btn = document.createElement('button');
+      btn.className = "tab-btn dynamic-cat-btn";
+      btn.textContent = `📁 ${cat}`;
+      btn.onclick = function() { switchTab('cat-page-' + sanitizeClass(cat)); };
+      navContainer.appendChild(btn);
+
+      // 2. إنشاء صفحة مستقلة لكل قسم
+      const catDiv = document.createElement('div');
+      catDiv.id = 'cat-page-' + sanitizeClass(cat);
+      catDiv.className = "section-content";
+
+      const catItems = localBatches.filter(p => p.category === cat);
+
+      let rowsHTML = '';
+      if (catItems.length === 0) {
+        rowsHTML = `<tr><td colspan="8">لا توجد دفعات مسجلة في هذا القسم حالياً.</td></tr>`;
+      } else {
+        catItems.forEach(item => {
+          rowsHTML += `
+            <tr>
+              <td><strong>${item.name}</strong></td>
+              <td>${item.quantity}</td>
+              <td>${item.buyPrice} ج.م</td>
+              <td>${item.sellPrice} ج.م</td>
+              <td>${item.prodDate}</td>
+              <td>${item.expDate}</td>
+              <td>${item.quantity <= 2 ? "<span class='badge-warning'>مخزون منخفض</span>" : "سليم"}</td>
+              <td><button class="btn-delete" onclick="deleteBatch('${item.id}')">حذف</button></td>
+            </tr>
+          `;
+        });
+      }
+
+      catDiv.innerHTML = `
+        <div class="card">
+          <h3>📦 منتجات ودفعات قسم: ${cat}</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>المنتج</th>
+                  <th>المتبقي بالمخزن</th>
+                  <th>شراء</th>
+                  <th>بيع</th>
+                  <th>تاريخ الإنتاج</th>
+                  <th>تاريخ الصلاحية</th>
+                  <th>الحالة</th>
+                  <th>إجراء</th>
+                </tr>
+              </thead>
+              <tbody>${rowsHTML}</tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      pagesContainer.appendChild(catDiv);
+    });
+  }
+
+  function sanitizeClass(str) {
+    return str.replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+  }
 
   function updateReports() {
     const categories = [...new Set(localBatches.map(p => p.category))];
